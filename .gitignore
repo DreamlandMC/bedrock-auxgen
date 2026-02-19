@@ -1,0 +1,33 @@
+# ===== Go =====
+bin/
+dist/
+build/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace / modules cache
+go.work
+go.work.sum
+
+# ===== IntelliJ / GoLand =====
+.idea/
+*.iml
+out/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Logs =====
+*.log
+
+# ===== Generated files =====
+typeIdToAux.json
+
+# ===== Env =====
+.env

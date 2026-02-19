@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.goos }}, ${{ matrix.goarch }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Build binaries and archives
+        run: |
+          mkdir -p dist
+
+          VERSION=${{ github.ref_name }}
+          OS=${{ matrix.goos }}
+          ARCH=${{ matrix.goarch }}
+
+          NAME=bedrock-auxgen_${VERSION}_${OS}_${ARCH}
+
+          if [ "$OS" = "windows" ]; then
+            BIN=${NAME}.exe
+          else
+            BIN=${NAME}
+          fi
+
+          GOOS=$OS GOARCH=$ARCH \
+          go build -ldflags "-X main.version=${VERSION}" \
+          -o dist/$BIN ./cmd/bedrock-auxgen
+
+          if [ "$OS" = "windows" ]; then
+            cd dist
+            zip ${NAME}.zip $BIN
+          else
+            tar -C dist -czf dist/${NAME}.tar.gz $BIN
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**/*
