@@ -28,7 +28,7 @@ aux = raw_id * 65536
 ## Go install
 
 ```
-go install github.com/wanmine/bedrock-auxgen/cmd/bedrock-auxgen@latest
+go install github.com/DreamlandMC/bedrock-auxgen/cmd/bedrock-auxgen@latest
 ```
 
 Ensure `$GOBIN` is in your PATH.
@@ -161,7 +161,7 @@ aux = raw_id * 65536
 # 🛠 Build From Source
 
 ```
-git clone https://github.com/wanmine/bedrock-auxgen
+git clone https://github.com/DreamlandMC/bedrock-auxgen
 cd bedrock-auxgen
 go build ./cmd/bedrock-auxgen
 ```
