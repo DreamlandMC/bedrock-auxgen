@@ -1,13 +1,25 @@
 # bedrock-auxgen
 
-Generate Minecraft Bedrock **AUX IDs** from Mojang’s official item metadata.
+Generate Minecraft Bedrock **AUX IDs** from Mojang’s official item metadata — with optional **custom item support from Resource Packs**.
 
 `bedrock-auxgen` downloads the Mojang Bedrock item list and converts each item’s `raw_id` into the Bedrock **Aux ID** used internally by the game.
 
 Aux formula:
 
 ```
-aux = raw_id * 65536
+aux = item_id << 16
+```
+
+For vanilla items:
+
+```
+item_id = raw_id 
+```
+
+For custom items:
+
+```
+item_id = custom_start + index
 ```
 
 ---
@@ -16,9 +28,11 @@ aux = raw_id * 65536
 
 * Uses Mojang’s official Bedrock data source
 * Exact AUX calculation
+* Optional custom item AUX generation from Resource Pack
+* Configurable custom item start ID
+* Deterministic & reproducible
 * Outputs ready-to-use JSON mapping
 * CLI flags for stdout / custom path
-* Deterministic & reproducible
 * Perfect for plugins (Nukkit, PocketMine, Geyser)
 
 ---
@@ -37,7 +51,7 @@ Ensure `$GOBIN` is in your PATH.
 
 # 🚀 Usage
 
-## Generate default file
+## Generate vanilla AUX map
 
 ```
 bedrock-auxgen
@@ -65,7 +79,7 @@ bedrock-auxgen --out items.json
 bedrock-auxgen --stdout
 ```
 
-Output example:
+Example:
 
 ```
 minecraft:acacia_slab: -52822016
@@ -75,10 +89,50 @@ minecraft:oak_log: 10616832
 
 ---
 
-## Version
+# 🧩 Custom Items (Resource Pack)
+
+`bedrock-auxgen` can generate AUX IDs for Custom items by reading:
 
 ```
-bedrock-auxgen --version
+<RP>/textures/item_texture.json
+```
+
+Example:
+
+```json
+{
+  "texture_data": {
+    "customidentifier:customitem": {
+      "textures": "textures/items/customitem"
+    }
+  }
+}
+```
+
+---
+
+## Generate with custom items
+
+```
+bedrock-auxgen --rp ./MyRP
+```
+
+Custom items start at **257** by default.
+
+---
+
+## Change custom start ID
+
+This is useful for third party Serversoftwares because some of them are shifting the IDs a little bit to not run into any issues. (e.g. 10000 For PowerNukkitX):
+
+```
+bedrock-auxgen --rp ./MyRP --custom-start 10000
+```
+
+Formula:
+
+```
+custom_aux = (custom_start + index) << 16
 ```
 
 ---
@@ -89,9 +143,9 @@ Generated JSON:
 
 ```json
 {
-  "minecraft:acacia_slab": -52822016,
   "minecraft:diamond_sword": 184549376,
-  "minecraft:oak_log": 10616832
+  "minecraft:oak_log": 10616832,
+  "customidentifier:customitem": 16842752
 }
 ```
 
@@ -102,7 +156,7 @@ Value = AUX ID
 
 # 🔌 Java / Plugin Integration
 
-Load once into memory:
+Load once:
 
 ```java
 private static final Map<String, Long> typeIdToAux;
@@ -145,16 +199,34 @@ metadata/vanilladata_modules/mojang-items.json
 
 # ⚙️ How It Works
 
+### Vanilla
+
 1. Download Mojang item metadata
-2. Parse `data_items`
-3. Read `raw_id`
-4. Compute AUX:
+2. Read `raw_id`
+3. Compute
 
 ```
-aux = raw_id * 65536
+aux = raw_id << 16
 ```
 
-5. Export mapping
+---
+
+### Custom Items
+
+1. Read `textures/item_texture.json`
+2. Collect identifiers
+3. Sort alphabetically
+4. Assign sequential IDs
+
+```
+item_id = custom_start + index
+```
+
+5. Compute AUX
+
+```
+aux = item_id << 16
+```
 
 ---
 

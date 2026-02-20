@@ -4,21 +4,18 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"os"
 )
 
 const mojangURL = "https://raw.githubusercontent.com/Mojang/bedrock-samples/main/metadata/vanilladata_modules/mojang-items.json"
 
 type mojangItems struct {
-	DataItems []item `json:"data_items"`
+	DataItems []struct {
+		Name  string `json:"name"`
+		RawID int64  `json:"raw_id"`
+	} `json:"data_items"`
 }
 
-type item struct {
-	Name  string `json:"name"`
-	RawID int64  `json:"raw_id"`
-}
-
-func Generate() (map[string]int64, error) {
+func Generate(customItemsRP string, customStart int64) (map[string]int64, error) {
 	resp, err := http.Get(mojangURL)
 	if err != nil {
 		return nil, err
@@ -35,23 +32,23 @@ func Generate() (map[string]int64, error) {
 		return nil, err
 	}
 
-	aux := make(map[string]int64, len(data.DataItems))
+	out := make(map[string]int64, len(data.DataItems))
 
+	// Vanilla AUX
 	for _, it := range data.DataItems {
-		aux[it.Name] = it.RawID * 65536
+		out[it.Name] = it.RawID << 16
 	}
 
-	return aux, nil
-}
-
-func WriteJSON(path string, m map[string]int64) error {
-	f, err := os.Create(path)
-	if err != nil {
-		return err
+	// Custom AUX
+	if customItemsRP != "" {
+		custom, err := LoadCustomItemsFromRP(customItemsRP, customStart)
+		if err != nil {
+			return nil, err
+		}
+		for k, v := range custom {
+			out[k] = v
+		}
 	}
-	defer f.Close()
 
-	enc := json.NewEncoder(f)
-	enc.SetIndent("", "  ")
-	return enc.Encode(m)
+	return out, nil
 }
