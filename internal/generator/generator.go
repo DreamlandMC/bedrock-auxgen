@@ -15,7 +15,7 @@ type mojangItems struct {
 	} `json:"data_items"`
 }
 
-func Generate(customItemsRP string) (map[string]int64, error) {
+func Generate(customItemsRP string, customStart int64) (map[string]int64, error) {
 	resp, err := http.Get(mojangURL)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func Generate(customItemsRP string) (map[string]int64, error) {
 
 	// Custom AUX
 	if customItemsRP != "" {
-		custom, err := LoadCustomItemsFromRP(customItemsRP, out)
+		custom, err := LoadCustomItemsFromRP(customItemsRP, customStart)
 		if err != nil {
 			return nil, err
 		}
