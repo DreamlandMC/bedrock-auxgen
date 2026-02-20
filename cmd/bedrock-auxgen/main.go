@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/DreamlandMC/bedrock-auxgen/internal/generator"
-
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/DreamlandMC/bedrock-auxgen/internal/generator"
 )
 
 var version = "1.0.1"
@@ -14,6 +14,7 @@ func main() {
 	out := flag.String("out", "typeIdToAux.json", "output file")
 	stdout := flag.Bool("stdout", false, "print only to stdout")
 	showVersion := flag.Bool("version", false, "print version")
+	customRP := flag.String("rp", "", "path to resource pack root")
 
 	flag.Parse()
 
@@ -22,7 +23,7 @@ func main() {
 		return
 	}
 
-	auxMap, err := generator.Generate()
+	auxMap, err := generator.Generate(*customRP)
 	if err != nil {
 		fmt.Println("error:", err)
 		os.Exit(1)
