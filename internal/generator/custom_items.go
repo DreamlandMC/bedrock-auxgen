@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+
+	"github.com/SkaticNET/bedrock-jsonfix/bedrockjsonfix"
 )
 
 type itemTextureFile struct {
@@ -22,9 +24,15 @@ func LoadCustomItemsFromRP(rpPath string, startID int64) (map[string]int64, erro
 		return nil, fmt.Errorf("failed to read item_texture.json: %w", err)
 	}
 
+	opt := bedrockjsonfix.DefaultOptions()
+	res, err := bedrockjsonfix.FixBytes(data, opt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fix item_texture.json syntax: %w", err)
+	}
+
 	var file itemTextureFile
-	if err := json.Unmarshal(data, &file); err != nil {
-		return nil, fmt.Errorf("invalid item_texture.json: %w", err)
+	if err := json.Unmarshal(res.Output, &file); err != nil {
+		return nil, fmt.Errorf("invalid item_texture.json format: %w", err)
 	}
 
 	if len(file.TextureData) == 0 {
@@ -38,7 +46,6 @@ func LoadCustomItemsFromRP(rpPath string, startID int64) (map[string]int64, erro
 	sort.Strings(ids)
 
 	out := make(map[string]int64, len(ids))
-
 	for i, id := range ids {
 		itemID := startID + int64(i)
 		aux := itemID << 16
