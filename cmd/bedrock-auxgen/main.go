@@ -8,7 +8,7 @@ import (
 	"github.com/DreamlandMC/bedrock-auxgen/internal/generator"
 )
 
-var version = "1.0.2"
+var version = "1.0.3"
 
 func main() {
 	out := flag.String("out", "typeIdToAux.json", "output file")
